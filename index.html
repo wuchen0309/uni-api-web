@@ -19,9 +19,16 @@
                     </svg>
                 </button>
             </div>
-            <div class="sidebar-content" id="fileTree">
-                <!-- 文件树将通过JavaScript动态生成 -->
-                <div class="loading">加载文件中...</div>
+            <div class="sidebar-content" id="sidebarNav">
+                <!-- 功能按钮导航 -->
+                <div class="nav-item" data-page="settings">
+                    <div class="nav-icon">⚙️</div>
+                    <span class="nav-text">设置管理</span>
+                </div>
+                <div class="nav-item" data-page="logs.md">
+                    <div class="nav-icon">📋</div>
+                    <span class="nav-text">日志</span>
+                </div>
             </div>
         </div>
 
@@ -33,10 +40,99 @@
         <!-- 主内容区域 -->
         <div id="content" class="content">
             <div id="markdown-content" class="markdown-body">
-                <!-- <p>请从侧边栏选择一个Markdown文件来查看内容。</p> -->
+                <!-- API配置容器 -->
+                <div id="api-container" style="display: none;">
+                    <h2>API配置</h2>
+                    <div id="api-cards-container" class="api-cards-container">
+                        <!-- API卡片将在这里动态添加 -->
+                    </div>
+                    <button id="add-api-button" class="add-api-button">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 3V13" stroke="currentColor" stroke-width="1.5"></path>
+                            <path d="M3 8H13" stroke="currentColor" stroke-width="1.5"></path>
+                        </svg>
+                        添加新API
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- 卡片模板 -->
+    <div class="api-card template" style="display: none;">
+        <div class="card-content">
+            <div class="api-form">
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label>提供商</label>
+                        <div class="card-actions">
+                            <button class="card-button duplicate-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M13 5H7V11H13V5Z" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M10 3H4V9" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            <button class="card-button delete-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M5 4V12H11V4" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="text" class="provider-name" placeholder="输入提供商名称">
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="text" class="api-key" placeholder="输入 API Key">
+                </div>
+                <div class="form-group">
+                    <label>Base URL</label>
+                    <input type="text" class="base-url" placeholder="输入 Base URL">
+                </div>
+                <div class="form-group">
+                    <label>模型</label>
+                    <div class="models-container">
+                        <!-- 模型条目将在这里动态添加 -->
+                    </div>
+                    <button type="button" class="add-model-btn">添加模型</button>
+                </div>
+                <div class="advanced-settings">
+                    <div class="advanced-settings-header" tabindex="0">
+                        <span>高级设置</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="advanced-settings-content" style="display: none;">
+                        <div class="setting-item">
+                            <label>支持工具</label>
+                            <input type="checkbox" class="tools-checkbox">
+                        </div>
+                        <div class="setting-item">
+                            <label for="system-prompt">系统提示</label>
+                            <textarea class="system-prompt" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模型条目模板 -->
+    <div class="model-entry-template" style="display: none;">
+        <div class="model-entry">
+            <div class="model-inputs">
+                <input type="text" class="original-model-name" placeholder="原始模型名称">
+                <input type="text" class="renamed-model-name" placeholder="别名（可选）">
+            </div>
+            <button class="remove-model-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M5 4V12H11V4" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <script src="script.js" type="module"></script>
 </body>
 </html>

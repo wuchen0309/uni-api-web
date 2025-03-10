@@ -1,12 +1,10 @@
-import { processMathAndMarkdown, renderMathInElement } from './htmd/latex.js';
 document.addEventListener('DOMContentLoaded', function() {
     // 元素获取
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const togglePin = document.getElementById('togglePin');
-    const fileTree = document.getElementById('fileTree');
+    const sidebarNav = document.getElementById('sidebarNav');
     const markdownContent = document.getElementById('markdown-content');
-    const currentFileName = document.getElementById('currentFileName');
     const sidebarTitle = document.querySelector('.sidebar-header h3');
 
     // 侧边栏状态
@@ -58,14 +56,10 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebar.classList.remove('collapsed');
     });
 
-    // 修改：将事件监听器添加到标题文本元素上
+    // 修改：标题点击事件
     sidebarTitle.addEventListener('click', function() {
-        // 加载首页内容
-        loadFileContent('index.md');
-        // 更新URL
-        updateUrl('index.md');
-        // 清除所有文件的活动状态
-        document.querySelectorAll('.file-tree-item').forEach(item => {
+        // 清除所有导航项的活动状态
+        document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
 
@@ -75,6 +69,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // 为导航项添加点击事件
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            // 移除所有导航项的活动状态
+            document.querySelectorAll('.nav-item').forEach(navItem => {
+                navItem.classList.remove('active');
+            });
+
+            // 添加当前项的活动状态
+            this.classList.add('active');
+
+            // 更新URL
+
+            // 在移动端自动隐藏侧边栏
+            if (isMobile()) {
+                sidebar.classList.remove('expanded');
+            }
+
+            // 检查是否点击了设置管理，如果是则加载API配置
+            fetchApiConfig();
+        });
+    });
+
     // 根据URL加载内容
     function checkUrlAndLoadContent() {
         // 获取URL中的路径
@@ -82,167 +99,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 如果URL没有指定路径，则加载默认文件
         if (!path) {
-            loadFileContent('index.md');
+            fetchApiConfig();
             return;
         }
 
-        // 使用URL中的路径加载内容
-        loadFileContent(path);
+        // 高亮对应的导航项
+        highlightActiveNavItem(path);
+
+        // 如果当前页面是设置页面，则加载API配置
+        if (path === 'settings') {
+            setTimeout(() => {
+                fetchApiConfig();
+            }, 100);
+        }
+    }
+
+    // 高亮显示当前活动的导航项
+    function highlightActiveNavItem(path) {
+        const navItem = document.querySelector(`.nav-item[data-page="${path}"]`);
+        if (navItem) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            navItem.classList.add('active');
+        }
     }
 
     // 更新URL而不刷新页面
-    function updateUrl(filePath) {
+    function updateUrl(pagePath) {
         // 使用hash方式更新URL
-        window.location.hash = filePath;
+        window.location.hash = pagePath;
     }
 
-    // 修改加载文件树的函数，使用预生成的JSON文件
-    async function loadFileTree() {
-        try {
-            // 使用fetch加载预生成的JSON文件 - 更改为新的文件名
-            const response = await fetch('content-structure.json');
-            if (!response.ok) {
-                throw new Error(`加载文件结构失败: HTTP ${response.status}`);
-            }
-
-            const fileStructure = await response.json();
-            fileTree.innerHTML = generateFileTree(fileStructure);
-
-            // 默认展开第一级文件夹
-            document.querySelectorAll('.file-tree-folder').forEach(folder => {
-                // 只展开第一级
-                if (folder.parentElement.id === 'fileTree') {
-                    folder.classList.add('expanded');
-                }
-            });
-
-            // 为文件夹添加点击事件
-            document.querySelectorAll('.file-tree-folder > .file-tree-item').forEach(folder => {
-                folder.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    this.parentElement.classList.toggle('expanded');
-                });
-            });
-
-            // 为文件添加点击事件
-            document.querySelectorAll('.file-tree-item.file').forEach(file => {
-                file.addEventListener('click', function() {
-                    // 移除所有文件的活动状态
-                    document.querySelectorAll('.file-tree-item').forEach(item => {
-                        item.classList.remove('active');
-                    });
-
-                    // 添加当前文件的活动状态
-                    this.classList.add('active');
-
-                    // 获取文件路径并加载内容
-                    const filePath = this.getAttribute('data-path');
-                    loadFileContent(filePath);
-
-                    // 更新URL
-                    updateUrl(filePath);
-
-                    // 更新当前文件名显示 (如果有此元素)
-                    if (currentFileName) {
-                        currentFileName.textContent = this.textContent.trim();
-                    }
-
-                    // 在移动端自动隐藏侧边栏
-                    if (isMobile()) {
-                        sidebar.classList.remove('expanded');
-                    }
-                });
-            });
-
-            // 如果URL中有文件路径，突出显示对应的文件
-            highlightActiveFile();
-        } catch (error) {
-            fileTree.innerHTML = `<div class="error">加载文件失败: ${error.message}</div>`;
-            console.error('加载文件结构失败:', error);
-        }
-    }
-
-    // 根据当前URL突出显示活动文件
-    function highlightActiveFile() {
-        let path = window.location.hash.substring(1);
-        if (!path) return;
-
-        // 查找对应的文件元素并激活
-        const fileElement = document.querySelector(`.file-tree-item.file[data-path="${path}"]`);
-        if (fileElement) {
-            // 清除其他活动状态
-            document.querySelectorAll('.file-tree-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // 添加活动状态
-            fileElement.classList.add('active');
-
-            // 展开父文件夹
-            let parent = fileElement.parentElement;
-            while (parent && parent.classList.contains('file-tree-folder-content')) {
-                parent.parentElement.classList.add('expanded');
-                parent = parent.parentElement.parentElement;
-            }
-        }
-    }
-
-    // 生成文件树HTML - 根节点隐藏处理
-    function generateFileTree(item, level = 0) {
-        let html = '';
-
-        // 根节点特殊处理 - 直接显示子项而不显示根节点本身
-        if (item.name === 'root' && level === 0) {
-            if (item.children && item.children.length) {
-                item.children.forEach(child => {
-                    html += generateFileTree(child, level);
-                });
-            }
-            return html;
-        }
-
-        // 常规文件夹和文件处理
-        if (item.type === 'folder') {
-            html += `<div class="file-tree-folder${level === 0 ? ' root-folder' : ''}" data-path="${item.path}">
-                      <div class="file-tree-item" style="padding-left: ${15 + level * 10}px">
-                        ${item.name}
-                      </div>
-                      <div class="file-tree-folder-content">`;
-
-            if (item.children && item.children.length) {
-                item.children.forEach(child => {
-                    html += generateFileTree(child, level + 1);
-                });
-            }
-
-            html += `</div>
-                   </div>`;
-        } else if (item.type === 'file') {
-            html += `<div class="file-tree-item file" data-path="${item.path}" style="padding-left: ${15 + level * 10}px">
-                      ${item.name}
-                    </div>`;
-        }
-        return html;
-    }
-
-    // 加载文件内容
-    async function loadFileContent(filePath) {
-        try {
-            markdownContent.innerHTML = '<div class="loading">加载内容中...</div>';
-
-            // 修改fetchFileContent函数来加载实际的Markdown文件
-            const content = await fetchFileContent(filePath);
-
-            // 使用用户提供的Markdown渲染函数处理内容
-            const renderedContent = processMathAndMarkdown(content);
-            markdownContent.innerHTML = renderedContent;
-            await renderMathInElement(markdownContent);
-        } catch (error) {
-            markdownContent.innerHTML = `<div class="error">加载内容失败: ${error.message}</div>`;
-        }
-    }
-
-    // 修改fetchFileContent函数来加载实际的Markdown文件
+    // 加载文件内容的函数
     async function fetchFileContent(filePath) {
         try {
             // 直接从相对路径加载markdown文件
@@ -257,11 +146,196 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 新增函数：获取API配置
+    async function fetchApiConfig() {
+        try {
+            // 显示API容器并设置加载状态
+            const apiContainer = document.getElementById('api-container');
+            const apiCardsContainer = document.getElementById('api-cards-container');
+
+            // 显示容器并清空之前的内容
+            apiContainer.style.display = '';
+            apiCardsContainer.innerHTML = '<div class="loading">加载API配置中...</div>';
+
+            // 发送请求获取API配置
+            const response = await fetch('http://localhost:8000/v1/api_config', {
+                headers: {
+                    'Authorization': 'Bearer REMOVED'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`请求失败: HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // 清空容器
+            apiCardsContainer.innerHTML = '';
+
+            // 创建每个API的卡片
+            if (data.api_config && data.api_config.providers) {
+                data.api_config.providers.forEach(provider => {
+                    const card = createApiCard(provider);
+                    apiCardsContainer.appendChild(card);
+                });
+
+                // 添加新建卡片按钮的事件监听
+                const addButton = document.getElementById('add-api-button');
+                addButton.addEventListener('click', () => {
+                    const emptyProvider = {
+                        provider: '',
+                        base_url: '',
+                        api: '',
+                        model: []
+                    };
+                    const newCard = createApiCard(emptyProvider);
+                    apiCardsContainer.appendChild(newCard);
+                });
+
+                // 添加事件监听
+                setupCardEventListeners();
+            } else {
+                apiCardsContainer.innerHTML = '<div class="error">未找到API配置</div>';
+            }
+        } catch (error) {
+            console.error('获取API配置失败:', error);
+            const apiContainer = document.getElementById('api-container');
+            const apiCardsContainer = document.getElementById('api-cards-container');
+
+            apiContainer.style.display = '';
+            apiCardsContainer.innerHTML = `<div class="error">获取API配置失败: ${error.message}</div>`;
+        }
+    }
+
+    // 创建API卡片
+    function createApiCard(provider) {
+        // 克隆模板
+        const template = document.querySelector('.api-card.template');
+        const card = template.cloneNode(true);
+        card.classList.remove('template');
+        card.style.display = '';
+
+        // 填充数据
+        card.querySelector('.provider-name').value = provider.provider || '';
+        card.querySelector('.api-key').value = provider.api || '';
+        card.querySelector('.base-url').value = provider.base_url || '';
+
+        // 清空模型容器
+        const modelsContainer = card.querySelector('.models-container');
+        modelsContainer.innerHTML = '';
+
+        // 添加模型条目
+        if (provider.model && Array.isArray(provider.model)) {
+            provider.model.forEach(modelItem => {
+                const modelEntry = createModelEntry(modelItem);
+                modelsContainer.appendChild(modelEntry);
+            });
+        }
+
+        // 添加模型按钮点击事件
+        const addModelBtn = card.querySelector('.add-model-btn');
+        addModelBtn.addEventListener('click', function() {
+            const newModelEntry = createModelEntry();
+            modelsContainer.appendChild(newModelEntry);
+        });
+
+        // 设置高级选项
+        if (card.querySelector('.tools-checkbox')) {
+            card.querySelector('.tools-checkbox').checked = provider.tools || false;
+        }
+
+        // 添加URL字段（如果存在）
+        if (provider.url && card.querySelector('.system-prompt')) {
+            card.querySelector('.system-prompt').value = provider.url || '';
+        }
+
+        return card;
+    }
+
+    // 创建模型条目
+    function createModelEntry(modelItem = null) {
+        // 克隆模型条目模板
+        const template = document.querySelector('.model-entry-template .model-entry');
+        const modelEntry = template.cloneNode(true);
+
+        const originalModelInput = modelEntry.querySelector('.original-model-name');
+        const renamedModelInput = modelEntry.querySelector('.renamed-model-name');
+
+        // 填充数据
+        if (modelItem) {
+            if (typeof modelItem === 'string') {
+                // 如果是字符串，只填充原始模型名
+                originalModelInput.value = modelItem;
+            } else if (typeof modelItem === 'object') {
+                // 如果是对象，填充原始名和别名
+                const originalName = Object.keys(modelItem)[0];
+                const renamedName = modelItem[originalName];
+
+                originalModelInput.value = originalName;
+                renamedModelInput.value = renamedName;
+            }
+        }
+
+        // 添加删除按钮事件
+        const removeBtn = modelEntry.querySelector('.remove-model-btn');
+        removeBtn.addEventListener('click', function() {
+            modelEntry.remove();
+        });
+
+        return modelEntry;
+    }
+
+    // 修改设置卡片事件监听
+    function setupCardEventListeners() {
+        // 复制卡片
+        document.querySelectorAll('.duplicate-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.api-card');
+                const clone = card.cloneNode(true);
+                card.parentNode.insertBefore(clone, card.nextSibling);
+
+                // 重新绑定模型添加按钮事件
+                const modelsContainer = clone.querySelector('.models-container');
+                const addModelBtn = clone.querySelector('.add-model-btn');
+                addModelBtn.addEventListener('click', function() {
+                    const newModelEntry = createModelEntry();
+                    modelsContainer.appendChild(newModelEntry);
+                });
+
+                // 重新绑定模型删除按钮事件
+                clone.querySelectorAll('.remove-model-btn').forEach(btn => {
+                    const modelEntry = btn.closest('.model-entry');
+                    btn.addEventListener('click', function() {
+                        modelEntry.remove();
+                    });
+                });
+
+                setupCardEventListeners(); // 重新绑定其他事件
+            });
+        });
+
+        // 删除卡片
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.api-card');
+                card.remove();
+            });
+        });
+
+        // 切换高级设置
+        document.querySelectorAll('.advanced-settings-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                const icon = this.querySelector('.toggle-icon');
+                icon.textContent = content.style.display === 'none' ? '▼' : '▲';
+            });
+        });
+    }
+
     // 监听URL变化
     window.addEventListener('hashchange', checkUrlAndLoadContent);
-
-    // 页面加载时初始化文件树
-    loadFileTree();
 
     // 添加：监听窗口大小变化
     window.addEventListener('resize', function() {
@@ -288,4 +362,49 @@ document.addEventListener('DOMContentLoaded', function() {
     sidebar.addEventListener('click', function(e) {
         e.stopPropagation();
     });
+
+    // 收集API配置数据
+    function collectApiConfigData() {
+        const apiCards = document.querySelectorAll('.api-card:not(.template)');
+        const providers = [];
+
+        apiCards.forEach(card => {
+            const provider = {
+                provider: card.querySelector('.provider-name').value,
+                api: card.querySelector('.api-key').value,
+                base_url: card.querySelector('.base-url').value,
+                tools: card.querySelector('.tools-checkbox').checked
+            };
+
+            // 收集模型数据
+            const models = [];
+            card.querySelectorAll('.model-entry').forEach(entry => {
+                const originalName = entry.querySelector('.original-model-name').value;
+                const renamedName = entry.querySelector('.renamed-model-name').value;
+
+                if (originalName) {
+                    if (renamedName) {
+                        // 如果有别名，使用对象格式
+                        const modelObj = {};
+                        modelObj[originalName] = renamedName;
+                        models.push(modelObj);
+                    } else {
+                        // 如果没有别名，使用字符串格式
+                        models.push(originalName);
+                    }
+                }
+            });
+
+            provider.model = models;
+
+            // 其他配置字段...
+            if (card.querySelector('.system-prompt')) {
+                provider.url = card.querySelector('.system-prompt').value;
+            }
+
+            providers.push(provider);
+        });
+
+        return { providers };
+    }
 });
