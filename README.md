@@ -1,5 +1,6 @@
 # uni-api-web
 
+[English](README.md) | [简体中文](README_CN.md)
 ## Project Overview
 
 uni-api-web is a lightweight API provider management tool that allows users to centrally manage configurations for multiple AI model providers, simplifying API key management and model access settings. Through a user-friendly interface, you can easily configure, update, and maintain settings for various AI service providers.
