@@ -23,7 +23,7 @@
                 <!-- 功能按钮导航 -->
                 <div class="nav-item" data-page="settings">
                     <div class="nav-icon">⚙️</div>
-                    <span class="nav-text">设置管理</span>
+                    <span class="nav-text">提供商管理</span>
                 </div>
                 <div class="nav-item" data-page="logs.md">
                     <div class="nav-icon">📋</div>
@@ -52,6 +52,14 @@
                             <path d="M3 8H13" stroke="currentColor" stroke-width="1.5"></path>
                         </svg>
                         添加新提供商
+                    </button>
+                    <button id="save-config-button" class="save-config-button">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M13 8L3 8" stroke="currentColor" stroke-width="1.5"></path>
+                            <path d="M8 3L8 13" stroke="currentColor" stroke-width="1.5"></path>
+                            <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.5"></circle>
+                        </svg>
+                        保存设置
                     </button>
                 </div>
             </div>
@@ -114,6 +122,11 @@
                             <label for="note">备注</label>
                             <textarea class="note" rows="3"></textarea>
                         </div>
+                        <div class="setting-item">
+                            <label for="preferences">偏好设置</label>
+                            <textarea class="preferences" rows="4" placeholder='{"proxy": "socks5://...","其他设置": "值"}'></textarea>
+                            <div class="preferences-help">JSON格式，例如: {"proxy": "socks5://..."}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,6 +147,31 @@
                 </svg>
             </button>
         </div>
+    </div>
+
+    <!-- API密钥条目模板 -->
+    <div class="api-key-entry-template" style="display: none;">
+        <div class="api-key-entry">
+            <div class="api-key-input-wrapper">
+                <input type="text" class="api-key" value="" placeholder="输入 API Key">
+                <button class="remove-api-key-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M5 4V12H11V4" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在文件末尾添加保存按钮模板 -->
+    <div id="save-button-template" style="display: none;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13 8L3 8" stroke="currentColor" stroke-width="1.5"></path>
+            <path d="M8 3L8 13" stroke="currentColor" stroke-width="1.5"></path>
+            <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.5"></circle>
+        </svg>
+        保存设置
     </div>
 
     <script src="script.js" type="module"></script>

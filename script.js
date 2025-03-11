@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sidebar.classList.remove('expanded');
             }
 
-            // 检查是否点击了设置管理，如果是则加载提供商配置
+            // 检查是否点击了提供商管理，如果是则加载提供商配置
             fetchApiConfig();
         });
     });
@@ -182,6 +182,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // 添加事件监听
                 setupCardEventListeners();
+
+                // 设置保存按钮事件监听
+                setupSaveConfigButton();
             } else {
                 apiCardsContainer.innerHTML = '<div class="error">未找到提供商配置</div>';
             }
@@ -195,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 创建API卡片
+    // 修改: 创建API卡片
     function createApiCard(provider) {
         // 克隆模板
         const template = document.querySelector('.api-card.template');
@@ -266,25 +269,28 @@ document.addEventListener('DOMContentLoaded', function() {
             card.querySelector('.note').value = provider.notes || '';
         }
 
+        // 添加：处理偏好设置
+        const preferencesTextarea = card.querySelector('.preferences');
+        if (preferencesTextarea && provider.preferences) {
+            try {
+                preferencesTextarea.value = JSON.stringify(provider.preferences, null, 2);
+            } catch (e) {
+                preferencesTextarea.value = '';
+                console.error('解析偏好设置失败', e);
+            }
+        }
+
         return card;
     }
 
-    // 新增: 创建API密钥输入条目
+    // 修改: 创建API密钥输入条目 - 使用HTML模板
     function createApiKeyEntry(apiKey = '') {
-        const entry = document.createElement('div');
-        entry.className = 'api-key-entry';
+        // 使用HTML模板
+        const template = document.querySelector('.api-key-entry-template .api-key-entry');
+        const entry = template.cloneNode(true);
 
-        entry.innerHTML = `
-            <div class="api-key-input-wrapper">
-                <input type="text" class="api-key" value="${apiKey}" placeholder="输入 API Key">
-                <button class="remove-api-key-btn">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M5 4V12H11V4" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                </button>
-            </div>
-        `;
+        // 设置API密钥值
+        entry.querySelector('.api-key').value = apiKey;
 
         // 添加删除按钮事件
         const removeBtn = entry.querySelector('.remove-api-key-btn');
@@ -299,9 +305,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return entry;
     }
 
-    // 创建模型条目
+    // 修改: 创建模型条目 - 使用HTML模板
     function createModelEntry(modelItem = null) {
-        // 克隆模型条目模板
+        // 使用HTML模板
         const template = document.querySelector('.model-entry-template .model-entry');
         const modelEntry = template.cloneNode(true);
 
@@ -517,6 +523,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             provider.model = models;
 
+            // 添加：收集偏好设置
+            const preferencesTextarea = card.querySelector('.preferences');
+            if (preferencesTextarea && preferencesTextarea.value.trim()) {
+                try {
+                    provider.preferences = JSON.parse(preferencesTextarea.value.trim());
+                } catch (e) {
+                    console.error('解析偏好设置JSON失败:', e);
+                    // 可以考虑显示错误提示给用户
+                }
+            }
+
             // 其他配置字段...
             if (card.querySelector('.note')) {
                 provider.notes = card.querySelector('.note').value;
@@ -526,5 +543,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         return { providers };
+    }
+
+    // 修改：保存配置按钮事件监听
+    function setupSaveConfigButton() {
+        const saveButton = document.getElementById('save-config-button');
+        if (saveButton) {
+            saveButton.addEventListener('click', function() {
+                // 收集配置数据
+                const configData = collectApiConfigData();
+
+                // 显示保存中状态
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<span class="loading-spinner"></span> 保存中...';
+
+                // 发送POST请求到服务器
+                fetch('http://localhost:8000/v1/api_config/update', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer REMOVED',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(configData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`请求失败: HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('保存成功:', data);
+                    // alert('配置已成功保存到服务器！');
+                })
+                .catch(error => {
+                    console.error('保存配置失败:', error);
+                    alert(`保存配置失败: ${error.message}`);
+                })
+                .finally(() => {
+                    // 恢复按钮状态
+                    saveButton.disabled = false;
+                    // 使用模板内容恢复按钮
+                    const buttonTemplate = document.getElementById('save-button-template');
+                    saveButton.innerHTML = buttonTemplate.innerHTML;
+                });
+            });
+        }
     }
 });
