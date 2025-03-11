@@ -40,9 +40,9 @@
         <!-- 主内容区域 -->
         <div id="content" class="content">
             <div id="markdown-content" class="markdown-body">
-                <!-- API配置容器 -->
+                <!-- 提供商配置容器 -->
                 <div id="api-container" style="display: none;">
-                    <h2>API配置</h2>
+                    <h2>提供商配置</h2>
                     <div id="api-cards-container" class="api-cards-container">
                         <!-- API卡片将在这里动态添加 -->
                     </div>
@@ -51,7 +51,7 @@
                             <path d="M8 3V13" stroke="currentColor" stroke-width="1.5"></path>
                             <path d="M3 8H13" stroke="currentColor" stroke-width="1.5"></path>
                         </svg>
-                        添加新API
+                        添加新提供商
                     </button>
                 </div>
             </div>
@@ -83,8 +83,11 @@
                     <input type="text" class="provider-name" placeholder="输入提供商名称">
                 </div>
                 <div class="form-group">
-                    <label>API Key</label>
-                    <input type="text" class="api-key" placeholder="输入 API Key">
+                    <label>API Keys</label>
+                    <div class="api-keys-container">
+                        <!-- API密钥条目将在这里动态添加 -->
+                    </div>
+                    <button type="button" class="add-api-key-btn">添加API密钥</button>
                 </div>
                 <div class="form-group">
                     <label>Base URL</label>
@@ -108,8 +111,8 @@
                             <input type="checkbox" class="tools-checkbox">
                         </div>
                         <div class="setting-item">
-                            <label for="system-prompt">系统提示</label>
-                            <textarea class="system-prompt" rows="3"></textarea>
+                            <label for="note">备注</label>
+                            <textarea class="note" rows="3"></textarea>
                         </div>
                     </div>
                 </div>

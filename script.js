@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sidebar.classList.remove('expanded');
             }
 
-            // 检查是否点击了设置管理，如果是则加载API配置
+            // 检查是否点击了设置管理，如果是则加载提供商配置
             fetchApiConfig();
         });
     });
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 高亮对应的导航项
         highlightActiveNavItem(path);
 
-        // 如果当前页面是设置页面，则加载API配置
+        // 如果当前页面是设置页面，则加载提供商配置
         if (path === 'settings') {
             setTimeout(() => {
                 fetchApiConfig();
@@ -125,28 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 更新URL而不刷新页面
-    function updateUrl(pagePath) {
-        // 使用hash方式更新URL
-        window.location.hash = pagePath;
-    }
-
-    // 加载文件内容的函数
-    async function fetchFileContent(filePath) {
-        try {
-            // 直接从相对路径加载markdown文件
-            const response = await fetch(filePath);
-            if (!response.ok) {
-                throw new Error(`加载文件失败: HTTP ${response.status}`);
-            }
-            return await response.text();
-        } catch (error) {
-            console.error(`加载文件失败 ${filePath}:`, error);
-            return `# 加载失败\n\n无法加载文件: ${filePath}\n\n错误: ${error.message}`;
-        }
-    }
-
-    // 新增函数：获取API配置
+    // 新增函数：获取提供商配置
     async function fetchApiConfig() {
         try {
             // 显示API容器并设置加载状态
@@ -155,12 +134,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 显示容器并清空之前的内容
             apiContainer.style.display = '';
-            apiCardsContainer.innerHTML = '<div class="loading">加载API配置中...</div>';
+            apiCardsContainer.innerHTML = '<div class="loading">加载提供商配置中...</div>';
 
-            // 发送请求获取API配置
+            // 发送请求获取提供商配置
             const response = await fetch('http://localhost:8000/v1/api_config', {
                 headers: {
-                    'Authorization': 'Bearer REMOVED'
+                    'Authorization': 'Bearer '
                 }
             });
 
@@ -191,20 +170,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     const newCard = createApiCard(emptyProvider);
                     apiCardsContainer.appendChild(newCard);
+
+                    // 为新添加的卡片绑定事件监听器
+                    setupNewCardEventListeners(newCard);
                 });
 
                 // 添加事件监听
                 setupCardEventListeners();
             } else {
-                apiCardsContainer.innerHTML = '<div class="error">未找到API配置</div>';
+                apiCardsContainer.innerHTML = '<div class="error">未找到提供商配置</div>';
             }
         } catch (error) {
-            console.error('获取API配置失败:', error);
+            console.error('获取提供商配置失败:', error);
             const apiContainer = document.getElementById('api-container');
             const apiCardsContainer = document.getElementById('api-cards-container');
 
             apiContainer.style.display = '';
-            apiCardsContainer.innerHTML = `<div class="error">获取API配置失败: ${error.message}</div>`;
+            apiCardsContainer.innerHTML = `<div class="error">获取提供商配置失败: ${error.message}</div>`;
         }
     }
 
@@ -218,7 +200,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 填充数据
         card.querySelector('.provider-name').value = provider.provider || '';
-        card.querySelector('.api-key').value = provider.api || '';
+
+        // 修改: 处理API密钥数组
+        const apiKeysContainer = card.querySelector('.api-keys-container');
+        apiKeysContainer.innerHTML = ''; // 清空默认的API输入框
+
+        // 如果API是数组，为每个API值创建一个输入框
+        if (Array.isArray(provider.api)) {
+            provider.api.forEach(apiKey => {
+                const apiKeyEntry = createApiKeyEntry(apiKey);
+                apiKeysContainer.appendChild(apiKeyEntry);
+            });
+        } else if (provider.api) {
+            // 如果API是单个字符串
+            const apiKeyEntry = createApiKeyEntry(provider.api);
+            apiKeysContainer.appendChild(apiKeyEntry);
+        } else {
+            // 如果没有API，创建一个空的输入框
+            const apiKeyEntry = createApiKeyEntry('');
+            apiKeysContainer.appendChild(apiKeyEntry);
+        }
+
+        // 添加API密钥按钮点击事件
+        const addApiKeyBtn = card.querySelector('.add-api-key-btn');
+        addApiKeyBtn.addEventListener('click', function() {
+            const newApiKeyEntry = createApiKeyEntry();
+            apiKeysContainer.appendChild(newApiKeyEntry);
+        });
+
         card.querySelector('.base-url').value = provider.base_url || '';
 
         // 清空模型容器
@@ -246,11 +255,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 添加URL字段（如果存在）
-        if (provider.url && card.querySelector('.system-prompt')) {
-            card.querySelector('.system-prompt').value = provider.url || '';
+        if (provider.url && card.querySelector('.note')) {
+            card.querySelector('.note').value = provider.url || '';
+        } else if (provider.notes && card.querySelector('.note')) {
+            card.querySelector('.note').value = provider.notes || '';
         }
 
         return card;
+    }
+
+    // 新增: 创建API密钥输入条目
+    function createApiKeyEntry(apiKey = '') {
+        const entry = document.createElement('div');
+        entry.className = 'api-key-entry';
+
+        entry.innerHTML = `
+            <div class="api-key-input-wrapper">
+                <input type="text" class="api-key" value="${apiKey}" placeholder="输入 API Key">
+                <button class="remove-api-key-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M5 4V12H11V4" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        // 添加删除按钮事件
+        const removeBtn = entry.querySelector('.remove-api-key-btn');
+        removeBtn.addEventListener('click', function() {
+            // 确保至少保留一个API密钥输入框
+            const container = entry.closest('.api-keys-container');
+            if (container.querySelectorAll('.api-key-entry').length > 1) {
+                entry.remove();
+            }
+        });
+
+        return entry;
     }
 
     // 创建模型条目
@@ -290,46 +331,105 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupCardEventListeners() {
         // 复制卡片
         document.querySelectorAll('.duplicate-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const card = this.closest('.api-card');
-                const clone = card.cloneNode(true);
-                card.parentNode.insertBefore(clone, card.nextSibling);
-
-                // 重新绑定模型添加按钮事件
-                const modelsContainer = clone.querySelector('.models-container');
-                const addModelBtn = clone.querySelector('.add-model-btn');
-                addModelBtn.addEventListener('click', function() {
-                    const newModelEntry = createModelEntry();
-                    modelsContainer.appendChild(newModelEntry);
-                });
-
-                // 重新绑定模型删除按钮事件
-                clone.querySelectorAll('.remove-model-btn').forEach(btn => {
-                    const modelEntry = btn.closest('.model-entry');
-                    btn.addEventListener('click', function() {
-                        modelEntry.remove();
-                    });
-                });
-
-                setupCardEventListeners(); // 重新绑定其他事件
-            });
+            // 移除现有的事件监听器，防止重复绑定
+            btn.removeEventListener('click', duplicateCardHandler);
+            btn.addEventListener('click', duplicateCardHandler);
         });
 
         // 删除卡片
         document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const card = this.closest('.api-card');
-                card.remove();
-            });
+            // 移除现有的事件监听器，防止重复绑定
+            btn.removeEventListener('click', deleteCardHandler);
+            btn.addEventListener('click', deleteCardHandler);
         });
 
         // 切换高级设置
         document.querySelectorAll('.advanced-settings-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                content.style.display = content.style.display === 'none' ? 'block' : 'none';
-                const icon = this.querySelector('.toggle-icon');
-                icon.textContent = content.style.display === 'none' ? '▼' : '▲';
+            // 移除现有的事件监听器，防止重复绑定
+            header.removeEventListener('click', toggleAdvancedSettingsHandler);
+            header.addEventListener('click', toggleAdvancedSettingsHandler);
+        });
+    }
+
+    // 抽取处理函数，便于添加和移除事件监听器
+    function duplicateCardHandler() {
+        const card = this.closest('.api-card');
+        const clone = card.cloneNode(true);
+        card.parentNode.insertBefore(clone, card.nextSibling);
+
+        // 为新卡片绑定事件
+        setupNewCardEventListeners(clone);
+    }
+
+    function deleteCardHandler() {
+        console.log("deleteCardHandler 删除卡片");
+        const card = this.closest('.api-card');
+        card.remove();
+    }
+
+    function toggleAdvancedSettingsHandler() {
+        const content = this.nextElementSibling;
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        const icon = this.querySelector('.toggle-icon');
+        icon.textContent = content.style.display === 'none' ? '▼' : '▲';
+    }
+
+    // 仅为新卡片设置事件监听器
+    function setupNewCardEventListeners(card) {
+        // 复制按钮
+        const duplicateBtn = card.querySelector('.duplicate-btn');
+        if (duplicateBtn) {
+            duplicateBtn.addEventListener('click', duplicateCardHandler);
+        }
+
+        // 删除按钮
+        const deleteBtn = card.querySelector('.delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', deleteCardHandler);
+        }
+
+        // 高级设置切换
+        const advancedHeader = card.querySelector('.advanced-settings-header');
+        if (advancedHeader) {
+            advancedHeader.addEventListener('click', toggleAdvancedSettingsHandler);
+        }
+
+        // 模型添加按钮
+        const addModelBtn = card.querySelector('.add-model-btn');
+        if (addModelBtn) {
+            addModelBtn.addEventListener('click', function() {
+                const modelsContainer = card.querySelector('.models-container');
+                const newModelEntry = createModelEntry();
+                modelsContainer.appendChild(newModelEntry);
+            });
+        }
+
+        // API密钥添加按钮
+        const addApiKeyBtn = card.querySelector('.add-api-key-btn');
+        if (addApiKeyBtn) {
+            addApiKeyBtn.addEventListener('click', function() {
+                const apiKeysContainer = card.querySelector('.api-keys-container');
+                const newApiKeyEntry = createApiKeyEntry();
+                apiKeysContainer.appendChild(newApiKeyEntry);
+            });
+        }
+
+        // 为已存在的模型删除按钮绑定事件
+        card.querySelectorAll('.remove-model-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modelEntry = btn.closest('.model-entry');
+                modelEntry.remove();
+            });
+        });
+
+        // 为已存在的API密钥删除按钮绑定事件
+        card.querySelectorAll('.remove-api-key-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const entry = btn.closest('.api-key-entry');
+                const container = entry.closest('.api-keys-container');
+                if (container.querySelectorAll('.api-key-entry').length > 1) {
+                    entry.remove();
+                }
             });
         });
     }
@@ -363,18 +463,34 @@ document.addEventListener('DOMContentLoaded', function() {
         e.stopPropagation();
     });
 
-    // 收集API配置数据
+    // 收集提供商配置数据
     function collectApiConfigData() {
         const apiCards = document.querySelectorAll('.api-card:not(.template)');
         const providers = [];
 
         apiCards.forEach(card => {
+            // 收集API密钥
+            const apiKeys = [];
+            card.querySelectorAll('.api-key-entry .api-key').forEach(input => {
+                if (input.value.trim()) {
+                    apiKeys.push(input.value.trim());
+                }
+            });
+
             const provider = {
                 provider: card.querySelector('.provider-name').value,
-                api: card.querySelector('.api-key').value,
                 base_url: card.querySelector('.base-url').value,
                 tools: card.querySelector('.tools-checkbox').checked
             };
+
+            // 如果只有一个API密钥，则以字符串形式存储，否则以数组形式存储
+            if (apiKeys.length === 1) {
+                provider.api = apiKeys[0];
+            } else if (apiKeys.length > 1) {
+                provider.api = apiKeys;
+            } else {
+                provider.api = "";
+            }
 
             // 收集模型数据
             const models = [];
@@ -398,8 +514,8 @@ document.addEventListener('DOMContentLoaded', function() {
             provider.model = models;
 
             // 其他配置字段...
-            if (card.querySelector('.system-prompt')) {
-                provider.url = card.querySelector('.system-prompt').value;
+            if (card.querySelector('.note')) {
+                provider.notes = card.querySelector('.note').value;
             }
 
             providers.push(provider);
