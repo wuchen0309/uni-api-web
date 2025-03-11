@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 新增函数：获取提供商配置
+    // 修改：获取提供商配置
     async function fetchApiConfig() {
         try {
             // 显示API容器并设置加载状态
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 发送请求获取提供商配置
             const response = await fetch('http://localhost:8000/v1/api_config', {
                 headers: {
-                    'Authorization': 'Bearer '
+                    'Authorization': 'Bearer REMOVED'
                 }
             });
 
@@ -159,9 +159,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     apiCardsContainer.appendChild(card);
                 });
 
-                // 添加新建卡片按钮的事件监听
+                // 获取添加按钮并先移除已有的事件监听器
                 const addButton = document.getElementById('add-api-button');
-                addButton.addEventListener('click', () => {
+                // 克隆按钮以移除所有事件监听器
+                const newButton = addButton.cloneNode(true);
+                addButton.parentNode.replaceChild(newButton, addButton);
+
+                // 重新添加事件监听器
+                newButton.addEventListener('click', () => {
                     const emptyProvider = {
                         provider: '',
                         base_url: '',
@@ -362,7 +367,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteCardHandler() {
-        console.log("deleteCardHandler 删除卡片");
         const card = this.closest('.api-card');
         card.remove();
     }
