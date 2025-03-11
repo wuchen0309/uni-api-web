@@ -4,14 +4,104 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const togglePin = document.getElementById('togglePin');
     const sidebarNav = document.getElementById('sidebarNav');
-    const markdownContent = document.getElementById('markdown-content');
     const sidebarTitle = document.querySelector('.sidebar-header h3');
+
+    // 添加：获取连接设置相关元素
+    const connectionSettings = document.getElementById('connection-settings');
+    const apiUrlInput = document.getElementById('api-url');
+    const apiKeyInput = document.getElementById('api-key');
+    const connectButton = document.getElementById('connect-button');
+    const apiConfigArea = document.getElementById('api-config-area');
+
+    // 添加：API连接状态和存储
+    let apiConnection = {
+        url: localStorage.getItem('api_url') || '',
+        key: localStorage.getItem('api_key') || '',
+        isConnected: false
+    };
 
     // 侧边栏状态
     let isPinned = false;
 
     // 检查URL并加载对应内容
     checkUrlAndLoadContent();
+
+    // 添加：如果已有存储的连接信息，自动填充
+    if (apiConnection.url) {
+        apiUrlInput.value = apiConnection.url;
+    }
+    if (apiConnection.key) {
+        apiKeyInput.value = apiConnection.key;
+    }
+
+    // 添加：连接按钮点击事件
+    connectButton.addEventListener('click', function() {
+        // 获取输入的值
+        const url = apiUrlInput.value.trim();
+        const key = apiKeyInput.value.trim();
+
+        // 验证输入
+        if (!url) {
+            alert('请输入服务器URL');
+            return;
+        }
+
+        if (!key) {
+            alert('请输入API Key');
+            return;
+        }
+
+        // 更新连接信息
+        apiConnection.url = url;
+        apiConnection.key = key;
+
+        // 存储到本地存储
+        localStorage.setItem('api_url', url);
+        localStorage.setItem('api_key', key);
+
+        // 显示加载状态
+        connectButton.disabled = true;
+        connectButton.innerHTML = '<span class="loading-spinner"></span> 连接中...';
+
+        // 尝试连接并获取配置
+        testConnectionAndLoadConfig();
+    });
+
+    // 添加：测试连接并加载配置
+    async function testConnectionAndLoadConfig() {
+        try {
+            // 构建请求URL
+            const requestUrl = `${apiConnection.url}/v1/api_config`;
+
+            // 发送请求测试连接
+            const response = await fetch(requestUrl, {
+                headers: {
+                    'Authorization': `Bearer ${apiConnection.key}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`连接失败: HTTP ${response.status}`);
+            }
+
+            // 连接成功
+            apiConnection.isConnected = true;
+
+            // 隐藏连接设置，显示API配置区域
+            connectionSettings.style.display = 'none';
+            apiConfigArea.style.display = 'block';
+
+            // 加载API配置
+            fetchApiConfig();
+        } catch (error) {
+            console.error('连接服务器失败:', error);
+            alert(`连接服务器失败: ${error.message}`);
+
+            // 恢复按钮状态
+            connectButton.disabled = false;
+            connectButton.innerHTML = '连接服务器';
+        }
+    }
 
     // 修改：检测是否为移动设备
     const isMobile = () => window.innerWidth <= 768;
@@ -97,19 +187,49 @@ document.addEventListener('DOMContentLoaded', function() {
         // 获取URL中的路径
         let path = window.location.hash.substring(1);
 
-        // 如果URL没有指定路径，则加载默认文件
+        // 如果URL没有指定路径，则显示连接设置（而不是直接加载默认文件）
         if (!path) {
-            fetchApiConfig();
+            const apiContainer = document.getElementById('api-container');
+            apiContainer.style.display = '';
+
+            // 如果已经有连接信息并且之前连接成功过，尝试重新连接
+            if (apiConnection.url && apiConnection.key) {
+                // 隐藏连接设置，显示加载状态
+                connectionSettings.style.display = 'none';
+                apiConfigArea.style.display = 'block';
+                testConnectionAndLoadConfig();
+            } else {
+                // 显示连接设置，隐藏API配置区域
+                connectionSettings.style.display = 'block';
+                apiConfigArea.style.display = 'none';
+            }
             return;
         }
 
         // 高亮对应的导航项
         highlightActiveNavItem(path);
 
-        // 如果当前页面是设置页面，则加载提供商配置
+        // 如果当前页面是设置页面，检查是否有连接信息
         if (path === 'settings') {
             setTimeout(() => {
-                fetchApiConfig();
+                const apiContainer = document.getElementById('api-container');
+                apiContainer.style.display = '';
+
+                if (apiConnection.isConnected) {
+                    // 如果已连接，显示API配置区域
+                    connectionSettings.style.display = 'none';
+                    apiConfigArea.style.display = 'block';
+                    fetchApiConfig();
+                } else if (apiConnection.url && apiConnection.key) {
+                    // 如果有连接信息但未连接，尝试连接
+                    connectionSettings.style.display = 'none';
+                    apiConfigArea.style.display = 'block';
+                    testConnectionAndLoadConfig();
+                } else {
+                    // 显示连接设置
+                    connectionSettings.style.display = 'block';
+                    apiConfigArea.style.display = 'none';
+                }
             }, 100);
         }
     }
@@ -136,10 +256,13 @@ document.addEventListener('DOMContentLoaded', function() {
             apiContainer.style.display = '';
             apiCardsContainer.innerHTML = '<div class="loading">加载提供商配置中...</div>';
 
+            // 构建请求URL
+            const requestUrl = `${apiConnection.url}/v1/api_config`;
+
             // 发送请求获取提供商配置
-            const response = await fetch('http://localhost:8000/v1/api_config', {
+            const response = await fetch(requestUrl, {
                 headers: {
-                    'Authorization': 'Bearer REMOVED'
+                    'Authorization': `Bearer ${apiConnection.key}`
                 }
             });
 
@@ -557,11 +680,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveButton.disabled = true;
                 saveButton.innerHTML = '<span class="loading-spinner"></span> 保存中...';
 
+                // 构建请求URL
+                const requestUrl = `${apiConnection.url}/v1/api_config/update`;
+
                 // 发送POST请求到服务器
-                fetch('http://localhost:8000/v1/api_config/update', {
+                fetch(requestUrl, {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer REMOVED',
+                        'Authorization': `Bearer ${apiConnection.key}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(configData)

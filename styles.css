@@ -732,3 +732,47 @@ body, .content {
     opacity: 0.7;
     cursor: wait;
 }
+
+/* 连接设置区域样式 */
+.connection-settings {
+    background-color: var(--side-bar-bg-color);
+    border: 1px solid #474d54;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.connection-settings h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #474d54;
+}
+
+.connection-settings .form-group {
+    margin-bottom: 15px;
+}
+
+.connection-settings label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--control-text-color);
+    font-size: 0.9rem;
+}
+
+.connection-settings input {
+    width: 100%;
+    padding: 8px 10px;
+    background-color: var(--bg-color);
+    border: 1px solid #474d54;
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.connection-settings input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* 对于连接按钮，我们可以重用save-config-button的样式 */
