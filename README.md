@@ -4,65 +4,38 @@
 
 ## Project Overview
 
-uni-api-web is a lightweight API provider management tool that allows users to centrally manage configurations for multiple AI model providers, simplifying API key management and model access settings. Through a user-friendly interface, you can easily configure, update, and maintain settings for various AI service providers.
+uni-api-web is the web interface for [uni-api](https://github.com/yym68686/uni-api), providing a user-friendly UI to manage and configure uni-api. Through uni-api-web, you can easily manage configurations for multiple AI model providers, including API key management and model access settings.
 
 ## Features
 
-- **Multi-provider Management**: Support for adding, editing, and deleting multiple API providers
-- **API Key Management**: Securely manage multiple API keys
-- **Model Configuration**: Configure available models and aliases for each provider
-- **Deployment Options**:
-  - Local deployment
-  - Remote deployment: Vercel, GitHub Pages, Cloudflare Pages
-- **Advanced Settings**:
-  - Tool support configuration
-  - Custom proxy settings
-  - Detailed note functionality
-- **Responsive Design**:
-  - Compatible with desktop and mobile devices
-  - Collapsible sidebar
-  - Dark theme interface
+- **Visual Configuration Management**
+  - Manage uni-api configuration through web interface
+  - Real-time YAML configuration preview and editing
+  - Import/export configuration files
 
-## Project Structure
+- **Multi-provider Management**
+  - Support all providers supported by uni-api
+  - OpenAI, Anthropic, Gemini, Vertex AI, etc.
+  - API key and model configuration management
 
-```
-uni-api-web/
-├── index.html          # Main page structure
-├── styles.css         # Style definitions
-├── src/
-│   ├── main.js       # Main application logic
-│   ├── services/
-│   │   └── apiConnection.js    # API connection service
-│   └── components/
-│       ├── apiCard.js          # API card component
-│       └── sidebar.js          # Sidebar component
-├── README.md         # English documentation
-└── README_CN.md      # Chinese documentation
-```
+- **Advanced Settings**
+  - Load balancing strategy configuration
+  - Timeout and retry mechanism settings
+  - Proxy configuration
+  - Model alias settings
 
-### Component Description
+- **User-friendly Design**
+  - Responsive layout for mobile devices
+  - Dark theme
+  - Multi-language support
 
-- `main.js` - Main entry point and core logic of the application
-- `apiConnection.js` - Handles communication with various API providers
-- `apiCard.js` - Manages API provider card display and interactions
-- `sidebar.js` - Handles sidebar functionality and responsive behavior
+## Deployment
 
-## Installation and Usage
-
-### Requirements
-
-- Modern web browser
-- Local or remote server for hosting backend services
-
-### Quick Start
-
-Remote Deployment:
-
-1. You can deploy uni-api-web to Vercel with one click:
+### Vercel One-click Deploy
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyym68686%2Funi-api-web)
 
-2. You can deploy to Cloudflare Pages:
+### Cloudflare Pages
 
 ```bash
 # Install Wrangler CLI
@@ -71,98 +44,88 @@ npm install -g wrangler
 # Login to Cloudflare
 wrangler login
 
-# Deploy to Cloudflare Pages (with SSL configuration)
-wrangler pages deploy . --project-name cerebr --branch main
+# Deploy to Cloudflare Pages
+wrangler pages deploy . --project-name uni-api-web --branch main
 ```
 
-3. You can also deploy to GitHub Pages:
+### GitHub Pages
 
-```bash
-# Fork this repository
-# Then go to Settings -> Pages in your repository
-# In the "Build and deployment" section:
-# - Set "Source" to "Deploy from a branch"
-# - Select your branch (main/master) and root directory (/)
-# - Click Save
-```
+1. Fork this repository
+2. Enable GitHub Pages in repository settings
+3. Select deployment branch and directory
 
-Local Deployment:
+### Local Deployment
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yym68686/uni-api-web.git
-   cd uni-api-web
-   ```
+```bash
+git clone https://github.com/yym68686/uni-api-web.git
+cd uni-api-web
+```
 
-2. Start the backend service:
-   ```bash
-   # Use the actual backend startup command for your project
-   python3 -m http.server 8001
-   ```
+2. Start local server:
+```bash
+python3 -m http.server 8001
+```
 
-3. Open `127.0.0.1:8001` in your browser or access via a web server
+3. Visit `http://127.0.0.1:8001`
 
 ## Configuration Guide
 
-### Provider Settings
+uni-api-web generates YAML configuration files required by uni-api through its visual interface. Main configuration items include:
 
-Each API provider can be configured with the following information:
-
-- **Provider Name**: Used to identify different service providers
-- **API Key**: Support for single or multiple API key configurations
-- **Base URL**: The base URL for the API service
-- **Model Configuration**:
-  - Original model names
-  - Optional model aliases
+### Basic Settings
+- Provider name and API keys
+- Base URL configuration
+- Model configuration and aliases
 
 ### Advanced Settings
+- Load balancing strategies
+- Timeout and retry settings
+- Proxy configuration
+- Permission control
 
-- **Tool Support**: Enable support for function calls and other tools
-- **Proxy Settings**: Configure proxy services through preference JSON
-- **Notes Feature**: Add notes related to the provider
+For detailed configuration instructions, please refer to [uni-api documentation](https://github.com/yym68686/uni-api).
 
 ## Development Guide
 
 ### Project Structure
 
-- `index.html` - Main page structure
-- `styles.css` - Style definitions
-- `src/main.js` - Main application logic
-- `src/components/` - UI components
-- `src/services/` - Service layer code
+```
+uni-api-web/
+├── index.html          # Main page
+├── styles.css          # Style definitions
+├── src/
+│   ├── main.js        # Main program logic
+│   ├── services/      # Service layer
+│   └── components/    # UI components
+├── README.md          # English documentation
+└── README_CN.md       # Chinese documentation
+```
 
 ### Custom Development
 
-To modify or extend functionality:
+1. Modify `index.html` to add new UI elements
+2. Add styles in `styles.css`
+3. Implement functionality in JavaScript files
 
-1. Edit `index.html` to add new UI elements
-2. Add corresponding styles in `styles.css`
-3. Implement interaction logic in appropriate JavaScript files:
-   - Add core functionality to `main.js`
-   - Add new components to `components` directory
-   - Add API-related features to `services` directory
+## Contributing
 
-## Contribution Guidelines
-
-We welcome community contributions! If you want to participate in project development:
+Pull Requests and Issues are welcome!
 
 1. Fork this repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Create a Pull Request
+2. Create your feature branch
+3. Submit your changes
+4. Create Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License
 
-## Contact Information
+## Contact
 
-If you have questions or suggestions, please contact us through:
-
-- Project Issues page
-- Email: your-email@example.com
+- Project Issues
+- Telegram Group: [uni_api](https://t.me/uni_api)
 
 ---
 
-Thank you for using uni-api! We look forward to your feedback and suggestions.
+Thank you for using uni-api-web!

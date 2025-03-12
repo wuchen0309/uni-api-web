@@ -2,67 +2,40 @@
 
 [English](README.md) | [简体中文](README_CN.md)
 
-## 项目简介
+## 项目概述
 
-uni-api-web 是一个轻量级的 API 提供商管理工具，允许用户集中管理多个 AI 模型提供商的配置，简化 API 密钥管理和模型访问设置。通过友好的用户界面，您可以轻松配置、更新和维护各种 AI 服务提供商的设置。
+uni-api-web 是 [uni-api](https://github.com/yym68686/uni-api) 的前端管理界面，提供了一个友好的 Web UI 来管理和配置 uni-api。通过 uni-api-web，您可以轻松地管理多个 AI 模型提供商的配置，包括 API 密钥管理、模型访问设置等。
 
-## 功能特点
+## 主要特性
 
-- **多提供商管理**：支持添加、编辑和删除多个 API 提供商
-- **API 密钥管理**：安全管理多个 API 密钥
-- **模型配置**：为每个提供商配置可用模型及别名
-- **部署方式**：
-  - 本地部署
-  - 远程部署：vercel，GitHub Pages，cloudflare pages
-- **高级设置**：
-  - 工具支持设置
-  - 自定义代理配置
-  - 详细备注功能
-- **响应式设计**：
-  - 适配桌面和移动设备
-  - 可折叠侧边栏
-  - 暗色主题界面
+- **可视化配置管理**
+  - 通过 Web 界面可视化管理 uni-api 配置
+  - 实时预览和编辑 YAML 配置
+  - 支持配置文件的导入导出
 
-## 项目结构
+- **多提供商管理**
+  - 支持所有 uni-api 支持的服务商配置
+  - OpenAI、Anthropic、Gemini、Vertex AI 等
+  - API 密钥和模型配置管理
 
-```
-uni-api-web/
-├── index.html          # 主页面结构
-├── styles.css          # 样式表定义
-├── src/
-│   ├── main.js        # 主要应用逻辑
-│   ├── services/
-│   │   └── apiConnection.js    # API 连接服务
-│   └── components/
-│       ├── apiCard.js          # API 卡片组件
-│       └── sidebar.js          # 侧边栏组件
-├── README.md          # 英文文档
-└── README_CN.md       # 中文文档
-```
+- **高级功能配置**
+  - 负载均衡策略设置
+  - 超时和重试机制配置
+  - 代理设置
+  - 模型别名配置
 
-### 组件说明
+- **用户友好设计**
+  - 响应式布局，支持移动端
+  - 暗色主题
+  - 多语言支持
 
-- `main.js` - 应用程序的主要入口点和核心逻辑
-- `apiConnection.js` - 处理与各种 API 提供商的通信
-- `apiCard.js` - 管理 API 提供商卡片的显示和交互
-- `sidebar.js` - 处理侧边栏的功能和响应式行为
+## 部署方式
 
-## 安装与使用
-
-### 安装要求
-
-- 现代网页浏览器
-- 本地或远程服务器用于托管后端服务
-
-### 快速开始
-
-远程部署：
-
-1. 你可以一键将 uni-api-web 部署到 Vercel：
+### Vercel 一键部署
 
 [![使用 Vercel 部署](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyym68686%2Funi-api-web)
 
-2. 你可以部署到 Cloudflare Pages：
+### Cloudflare Pages 部署
 
 ```bash
 # 安装 Wrangler CLI
@@ -71,98 +44,88 @@ npm install -g wrangler
 # 登录 Cloudflare
 wrangler login
 
-# 部署到 Cloudflare Pages（带 SSL 配置）
-wrangler pages deploy . --project-name cerebr --branch main
+# 部署到 Cloudflare Pages
+wrangler pages deploy . --project-name uni-api-web --branch main
 ```
 
-3. 你也可以部署到 GitHub Pages：
+### GitHub Pages 部署
 
+1. Fork 本仓库
+2. 在仓库设置中启用 GitHub Pages
+3. 选择部署分支和目录
+
+### 本地部署
+
+1. 克隆仓库:
 ```bash
-# Fork 这个仓库
-# 然后进入你的仓库的 Settings -> Pages
-# 在"构建和部署"部分：
-# - 将"Source"选择为"Deploy from a branch"
-# - 选择你的分支（main/master）和根目录（/）
-# - 点击保存
+git clone https://github.com/yym68686/uni-api-web.git
+cd uni-api-web
 ```
 
-本地部署：
+2. 启动本地服务:
+```bash
+python3 -m http.server 8001
+```
 
-1. 克隆仓库到本地：
-   ```bash
-   git clone https://github.com/yym68686/uni-api-web.git
-   cd uni-api-web
-   ```
-
-2. 启动后端服务：
-   ```bash
-   # 根据项目后端实际启动命令
-   python3 -m http.server 8001
-   ```
-
-3. 在浏览器中打开 `127.0.0.1:8001` 或通过 Web 服务器访问
+3. 访问 `http://127.0.0.1:8001`
 
 ## 配置说明
 
-### 提供商设置
+uni-api-web 通过可视化界面生成 uni-api 所需的 YAML 配置文件。主要配置项包括：
 
-每个 API 提供商可以配置以下信息：
+### 基础配置
+- 提供商名称和 API 密钥
+- Base URL 配置
+- 模型配置和别名设置
 
-- **提供商名称**：用于标识不同的服务提供商
-- **API 密钥**：支持单个或多个 API 密钥配置
-- **Base URL**：API 服务的基础 URL
-- **模型配置**：
-  - 原始模型名称
-  - 可选的模型别名
+### 高级配置
+- 负载均衡策略
+- 超时和重试设置
+- 代理配置
+- 权限控制
 
-### 高级设置
-
-- **工具支持**：启用对函数调用等工具的支持
-- **代理设置**：通过偏好设置 JSON 配置代理服务
-- **备注功能**：添加提供商相关的备注信息
+详细配置说明请参考 [uni-api 文档](https://github.com/yym68686/uni-api)。
 
 ## 开发指南
 
 ### 项目结构
 
-- `index.html` - 主页面结构
-- `styles.css` - 样式表定义
-- `src/main.js` - 主要应用逻辑
-- `src/components/` - UI 组件
-- `src/services/` - 服务层代码
+```
+uni-api-web/
+├── index.html          # 主页面
+├── styles.css          # 样式定义
+├── src/
+│   ├── main.js        # 主程序逻辑
+│   ├── services/      # 服务层
+│   └── components/    # UI组件
+├── README.md          # 英文文档
+└── README_CN.md       # 中文文档
+```
 
 ### 自定义开发
 
-如需修改或扩展功能：
-
-1. 编辑 `index.html` 添加新的 UI 元素
-2. 在 `styles.css` 中添加相应样式
-3. 在相应的 JavaScript 文件中实现交互逻辑：
-   - 核心功能添加到 `main.js`
-   - 新组件添加到 `components` 目录
-   - API 相关功能添加到 `services` 目录
+1. 修改 `index.html` 添加新的 UI 元素
+2. 在 `styles.css` 中添加样式
+3. 在相应的 JavaScript 文件中实现功能
 
 ## 贡献指南
 
-我们欢迎社区贡献！如果您希望参与项目开发：
+欢迎提交 Pull Request 或 Issue！
 
 1. Fork 本仓库
-2. 创建您的功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交您的更改 (`git commit -m '添加某某功能'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
+2. 创建特性分支
+3. 提交更改
+4. 发起 Pull Request
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 详情请参阅 [LICENSE](LICENSE) 文件
+本项目采用 MIT 许可证
 
 ## 联系方式
 
-如有问题或建议，请通过以下方式联系我们：
-
-- 项目 Issues 页面
-- 电子邮件：your-email@example.com
+- 项目 Issues
+- Telegram 群组: [uni_api](https://t.me/uni_api)
 
 ---
 
-感谢使用 uni-api！我们期待您的反馈和建议。
+感谢使用 uni-api-web！
