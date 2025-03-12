@@ -776,3 +776,24 @@ body, .content {
 }
 
 /* 对于连接按钮，我们可以重用save-config-button的样式 */
+
+/* 保存按钮成功状态样式 */
+.save-config-button.success {
+    background-color: #4caf50;  /* 绿色背景 */
+    transition: background-color 0.3s ease;
+}
+
+.save-config-button.success svg {
+    animation: checkmark 0.3s ease-in-out forwards;
+}
+
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

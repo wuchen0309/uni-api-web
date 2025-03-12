@@ -1,6 +1,7 @@
 # uni-api-web
 
 [English](README.md) | [简体中文](README_CN.md)
+
 ## Project Overview
 
 uni-api-web is a lightweight API provider management tool that allows users to centrally manage configurations for multiple AI model providers, simplifying API key management and model access settings. Through a user-friendly interface, you can easily configure, update, and maintain settings for various AI service providers.
@@ -21,6 +22,30 @@ uni-api-web is a lightweight API provider management tool that allows users to c
   - Compatible with desktop and mobile devices
   - Collapsible sidebar
   - Dark theme interface
+
+## Project Structure
+
+```
+uni-api-web/
+├── index.html          # Main page structure
+├── styles.css         # Style definitions
+├── src/
+│   ├── main.js       # Main application logic
+│   ├── services/
+│   │   └── apiConnection.js    # API connection service
+│   └── components/
+│       ├── apiCard.js          # API card component
+│       └── sidebar.js          # Sidebar component
+├── README.md         # English documentation
+└── README_CN.md      # Chinese documentation
+```
+
+### Component Description
+
+- `main.js` - Main entry point and core logic of the application
+- `apiConnection.js` - Handles communication with various API providers
+- `apiCard.js` - Manages API provider card display and interactions
+- `sidebar.js` - Handles sidebar functionality and responsive behavior
 
 ## Installation and Usage
 
@@ -102,9 +127,9 @@ Each API provider can be configured with the following information:
 
 - `index.html` - Main page structure
 - `styles.css` - Style definitions
-- `script.js` - Frontend interaction logic
-- `README.md` - English documentation
-- `README_CN.md` - Chinese documentation
+- `src/main.js` - Main application logic
+- `src/components/` - UI components
+- `src/services/` - Service layer code
 
 ### Custom Development
 
@@ -112,7 +137,10 @@ To modify or extend functionality:
 
 1. Edit `index.html` to add new UI elements
 2. Add corresponding styles in `styles.css`
-3. Implement interaction logic in `script.js`
+3. Implement interaction logic in appropriate JavaScript files:
+   - Add core functionality to `main.js`
+   - Add new components to `components` directory
+   - Add API-related features to `services` directory
 
 ## Contribution Guidelines
 

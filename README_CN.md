@@ -23,6 +23,30 @@ uni-api-web 是一个轻量级的 API 提供商管理工具，允许用户集中
   - 可折叠侧边栏
   - 暗色主题界面
 
+## 项目结构
+
+```
+uni-api-web/
+├── index.html          # 主页面结构
+├── styles.css          # 样式表定义
+├── src/
+│   ├── main.js        # 主要应用逻辑
+│   ├── services/
+│   │   └── apiConnection.js    # API 连接服务
+│   └── components/
+│       ├── apiCard.js          # API 卡片组件
+│       └── sidebar.js          # 侧边栏组件
+├── README.md          # 英文文档
+└── README_CN.md       # 中文文档
+```
+
+### 组件说明
+
+- `main.js` - 应用程序的主要入口点和核心逻辑
+- `apiConnection.js` - 处理与各种 API 提供商的通信
+- `apiCard.js` - 管理 API 提供商卡片的显示和交互
+- `sidebar.js` - 处理侧边栏的功能和响应式行为
+
 ## 安装与使用
 
 ### 安装要求
@@ -103,8 +127,9 @@ wrangler pages deploy . --project-name cerebr --branch main
 
 - `index.html` - 主页面结构
 - `styles.css` - 样式表定义
-- `script.js` - 前端交互逻辑
-- `README_CN.md` - 中文文档
+- `src/main.js` - 主要应用逻辑
+- `src/components/` - UI 组件
+- `src/services/` - 服务层代码
 
 ### 自定义开发
 
@@ -112,7 +137,10 @@ wrangler pages deploy . --project-name cerebr --branch main
 
 1. 编辑 `index.html` 添加新的 UI 元素
 2. 在 `styles.css` 中添加相应样式
-3. 在 `script.js` 中实现交互逻辑
+3. 在相应的 JavaScript 文件中实现交互逻辑：
+   - 核心功能添加到 `main.js`
+   - 新组件添加到 `components` 目录
+   - API 相关功能添加到 `services` 目录
 
 ## 贡献指南
 
