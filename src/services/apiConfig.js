@@ -6,7 +6,10 @@ export class ApiConfigService {
 
     // 获取API配置
     async fetchConfig() {
-        const response = await fetch(`${this.apiConnection.connection.url}/v1/api_config`, {
+        // 使用 apiConnection 的 normalizeUrl 方法规范化 URL
+        const baseUrl = this.apiConnection.normalizeUrl(this.apiConnection.connection.url);
+
+        const response = await fetch(`${baseUrl}/v1/api_config`, {
             headers: {
                 'Authorization': `Bearer ${this.apiConnection.connection.key}`
             }
@@ -21,7 +24,10 @@ export class ApiConfigService {
 
     // 保存API配置
     async saveConfig(configData) {
-        const response = await fetch(`${this.apiConnection.connection.url}/v1/api_config/update`, {
+        // 使用 apiConnection 的 normalizeUrl 方法规范化 URL
+        const baseUrl = this.apiConnection.normalizeUrl(this.apiConnection.connection.url);
+
+        const response = await fetch(`${baseUrl}/v1/api_config/update`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${this.apiConnection.connection.key}`,

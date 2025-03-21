@@ -16,18 +16,35 @@ export class ApiConnectionService {
         };
     }
 
+    // 规范化URL格式
+    normalizeUrl(url) {
+        if (!url) return '';
+
+        // 添加协议前缀（如果缺少）
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+        }
+
+        // 移除尾部斜杠
+        return url.replace(/\/+$/, '');
+    }
+
     // 保存连接信息
     saveConnection(url, key) {
-        this.connection.url = url;
+        const normalizedUrl = this.normalizeUrl(url);
+        this.connection.url = normalizedUrl;
         this.connection.key = key;
-        localStorage.setItem('api_url', url);
+        localStorage.setItem('api_url', normalizedUrl);
         localStorage.setItem('api_key', key);
     }
 
     // 测试连接
     async testConnection() {
         try {
-            const response = await fetch(`${this.connection.url}/v1/api_config`, {
+            // 确保URL格式正确
+            const baseUrl = this.normalizeUrl(this.connection.url);
+
+            const response = await fetch(`${baseUrl}/v1/api_config`, {
                 headers: {
                     'Authorization': `Bearer ${this.connection.key}`
                 }
