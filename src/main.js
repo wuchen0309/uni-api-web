@@ -6,7 +6,45 @@ import { Sidebar } from './components/sidebar.js';
 import { ApiCard } from './components/apiCard.js';
 import { isMobile } from './utils/deviceUtils.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+// 全局导出setupCardExpansionForCard函数
+window.setupCardExpansionForCard = function (card) {
+    const expandBtn = card.querySelector('.expand-card-btn');
+    const collapseBtn = card.querySelector('.collapse-card-btn');
+
+    if (expandBtn && collapseBtn) {
+        // 检查卡片高度是否超过限制
+        setTimeout(() => {
+            // 获取卡片内容的实际高度
+            const cardContent = card.querySelector('.card-content');
+            if (cardContent && cardContent.scrollHeight > 350) {
+                expandBtn.style.display = 'block';
+            } else {
+                expandBtn.style.display = 'none';
+                collapseBtn.style.display = 'none';
+                // 如果内容不需要折叠，移除渐变遮罩效果
+                card.classList.add('no-gradient');
+            }
+        }, 200);
+
+        // 展开按钮点击事件
+        expandBtn.addEventListener('click', () => {
+            card.classList.add('expanded');
+            expandBtn.style.display = 'none';
+            collapseBtn.style.display = 'block';
+        });
+
+        // 折叠按钮点击事件
+        collapseBtn.addEventListener('click', () => {
+            card.classList.remove('expanded');
+            expandBtn.style.display = 'block';
+            collapseBtn.style.display = 'none';
+            // 滚动到卡片顶部
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
     // 初始化服务
     const apiConnection = new ApiConnectionService();
     const apiConfig = new ApiConfigService(apiConnection);
@@ -19,6 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const connectButton = document.getElementById('connect-button');
     const apiConfigArea = document.getElementById('api-config-area');
     const content = document.getElementById('content');
+
+    // 初始化主题切换
+    initThemeToggle();
 
     // 初始化路由
     const router = new Router({
@@ -122,6 +163,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             setupAddButton();
             setupSaveButton();
+            setupCardExpansion(); // 初始化卡片折叠功能
+
+            // 添加窗口大小变化监听，更新卡片显示状态
+            window.addEventListener('resize', () => {
+                setupCardExpansion();
+            });
         } catch (error) {
             console.error('加载API配置失败:', error);
             const apiCardsContainer = document.getElementById('api-cards-container');
@@ -137,7 +184,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         newButton.addEventListener('click', () => {
             const apiCard = new ApiCard();
-            document.getElementById('api-cards-container').appendChild(apiCard.createCard());
+            const card = apiCard.createCard();
+            document.getElementById('api-cards-container').appendChild(card);
+
+            // 为新卡片设置折叠功能
+            setupCardExpansionForCard(card);
         });
     }
 
@@ -172,6 +223,49 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert(`保存配置失败: ${error.message}`);
                     saveButton.disabled = false;
                 }
+            });
+        }
+    }
+
+    // 初始化卡片折叠功能
+    function setupCardExpansion() {
+        document.querySelectorAll('.api-card:not(.template)').forEach(card => {
+            setupCardExpansionForCard(card);
+        });
+    }
+
+    // 主题切换功能
+    function initThemeToggle() {
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (themeToggleBtn) {
+            // 检查本地存储中的主题设置
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.body.className = savedTheme;
+            } else {
+                // 检查系统主题偏好
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.className = 'dark-mode';
+                    localStorage.setItem('theme', 'dark-mode');
+                }
+            }
+
+            // 切换主题
+            themeToggleBtn.addEventListener('click', () => {
+                if (document.body.classList.contains('dark-mode')) {
+                    document.body.classList.remove('dark-mode');
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light-mode');
+                } else {
+                    document.body.classList.remove('light-mode');
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark-mode');
+                }
+
+                // 切换主题时更新卡片折叠状态
+                setTimeout(() => {
+                    setupCardExpansion();
+                }, 100);
             });
         }
     }

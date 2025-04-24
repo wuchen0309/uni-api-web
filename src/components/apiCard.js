@@ -85,6 +85,9 @@ export class ApiCard {
             const container = entry.closest('.api-keys-container');
             if (container.querySelectorAll('.api-key-entry').length > 1) {
                 entry.remove();
+
+                // 更新卡片高度状态
+                this.updateCardExpandStatus(entry.closest('.api-card'));
             }
         });
 
@@ -111,7 +114,13 @@ export class ApiCard {
         }
 
         const removeBtn = modelEntry.querySelector('.remove-model-btn');
-        removeBtn.addEventListener('click', () => modelEntry.remove());
+        removeBtn.addEventListener('click', () => {
+            const card = modelEntry.closest('.api-card');
+            modelEntry.remove();
+
+            // 更新卡片高度状态
+            this.updateCardExpandStatus(card);
+        });
 
         return modelEntry;
     }
@@ -125,6 +134,13 @@ export class ApiCard {
                 const clone = card.cloneNode(true);
                 card.parentNode.insertBefore(clone, card.nextSibling);
                 this.setupCardEventListeners(clone);
+
+                // 为复制的卡片设置折叠功能
+                setTimeout(() => {
+                    if (typeof window.setupCardExpansionForCard === 'function') {
+                        window.setupCardExpansionForCard(clone);
+                    }
+                }, 200);
             });
         }
 
@@ -142,6 +158,9 @@ export class ApiCard {
             const apiKeysContainer = card.querySelector('.api-keys-container');
             const newApiKeyEntry = this.createApiKeyEntry();
             apiKeysContainer.appendChild(newApiKeyEntry);
+
+            // 更新卡片高度状态
+            this.updateCardExpandStatus(card);
         });
 
         // 添加模型按钮
@@ -150,6 +169,9 @@ export class ApiCard {
             const modelsContainer = card.querySelector('.models-container');
             const newModelEntry = this.createModelEntry();
             modelsContainer.appendChild(newModelEntry);
+
+            // 更新卡片高度状态
+            this.updateCardExpandStatus(card);
         });
 
         // 高级设置切换
@@ -157,29 +179,98 @@ export class ApiCard {
         if (advancedHeader) {
             advancedHeader.addEventListener('click', () => {
                 const content = advancedHeader.nextElementSibling;
-                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                const currentDisplay = content.style.display === 'none' || content.style.display === '' ? 'none' : 'block';
+                content.style.display = currentDisplay === 'none' ? 'block' : 'none';
                 const icon = advancedHeader.querySelector('.toggle-icon');
                 icon.textContent = content.style.display === 'none' ? '▼' : '▲';
+
+                // 更新卡片高度状态
+                setTimeout(() => {
+                    this.updateCardExpandStatus(card);
+                }, 300); // 等待动画完成
             });
         }
 
         // 为已存在的模型删除按钮绑定事件
         card.querySelectorAll('.remove-model-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', () => {
                 const modelEntry = btn.closest('.model-entry');
+                const parentCard = modelEntry.closest('.api-card');
                 modelEntry.remove();
+
+                // 更新卡片高度状态
+                this.updateCardExpandStatus(parentCard);
             });
         });
 
         // 为已存在的API密钥删除按钮绑定事件
         card.querySelectorAll('.remove-api-key-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', () => {
                 const entry = btn.closest('.api-key-entry');
                 const container = entry.closest('.api-keys-container');
+                const parentCard = entry.closest('.api-card');
                 if (container.querySelectorAll('.api-key-entry').length > 1) {
                     entry.remove();
+
+                    // 更新卡片高度状态
+                    this.updateCardExpandStatus(parentCard);
                 }
             });
         });
+
+        // 设置展开和折叠按钮
+        const expandBtn = card.querySelector('.expand-card-btn');
+        const collapseBtn = card.querySelector('.collapse-card-btn');
+
+        if (expandBtn && collapseBtn) {
+            expandBtn.addEventListener('click', () => {
+                card.classList.add('expanded');
+                expandBtn.style.display = 'none';
+                collapseBtn.style.display = 'block';
+            });
+
+            collapseBtn.addEventListener('click', () => {
+                card.classList.remove('expanded');
+                expandBtn.style.display = 'block';
+                collapseBtn.style.display = 'none';
+                // 滚动到卡片顶部
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+
+        // 初始设置卡片展开状态
+        setTimeout(() => {
+            this.updateCardExpandStatus(card);
+        }, 100);
+    }
+
+    // 更新卡片展开状态
+    updateCardExpandStatus(card) {
+        if (!card) return;
+
+        setTimeout(() => {
+            const expandBtn = card.querySelector('.expand-card-btn');
+            const collapseBtn = card.querySelector('.collapse-card-btn');
+            const cardContent = card.querySelector('.card-content');
+
+            if (expandBtn && collapseBtn && cardContent) {
+                // 比较内容实际高度和卡片最大高度
+                if (cardContent.scrollHeight > 350) {
+                    card.classList.remove('no-gradient');
+                    if (!card.classList.contains('expanded')) {
+                        expandBtn.style.display = 'block';
+                        collapseBtn.style.display = 'none';
+                    } else {
+                        expandBtn.style.display = 'none';
+                        collapseBtn.style.display = 'block';
+                    }
+                } else {
+                    expandBtn.style.display = 'none';
+                    collapseBtn.style.display = 'none';
+                    // 如果内容不需要折叠，移除渐变遮罩效果
+                    card.classList.add('no-gradient');
+                }
+            }
+        }, 100);
     }
 }
